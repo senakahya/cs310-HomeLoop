@@ -94,9 +94,13 @@ Purchases of the same product with different expiry dates will be tracked as sep
 
 ### Reminders
 
-A scheduled Firebase Cloud Function will check inventory dates daily and send notifications through Firebase Cloud Messaging for items within the reminder window.
+A scheduled Firebase Cloud Function will run once a day and check the expiry dates of inventory items with a recorded expiry date.
 
-Stored reminder status will prevent repeated alerts for the same item and threshold.
+Household members will receive notifications through Firebase Cloud Messaging 3 days and 1 day before an item’s expiry date.
+
+On the expiry date, the item will be marked as expired, and members will be asked whether it was consumed or discarded.
+
+Stored reminder status for each item and threshold will prevent duplicate notifications.
 
 ## Development Priorities
 
