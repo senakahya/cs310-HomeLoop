@@ -1,105 +1,133 @@
 # HomeLoop
 
-### CS310 Mobile Application Development · Group 20
+### CS310 Mobile Application Development — Group 20
 
-A shared home, a shared list, a clearer budget.
+HomeLoop is a Flutter application that brings shared shopping lists, kitchen inventory and household expenses together.
 
-HomeLoop is a planned Flutter application that brings household shopping, kitchen inventory, and shared expenses together in one place.
+Developed as a course project at Sabancı University, the app is designed for students living together, couples and small families.
 
 ## Overview
 
-People who share a home often manage shopping through group chats, lose track of food in the fridge, and struggle to remember who paid for shared purchases. HomeLoop connects these activities through a single household workspace.
+People sharing a home often manage shopping, food and shared expenses in separate places. This can lead to duplicate purchases, forgotten food and confusion about who paid for what.
 
-Members maintain a shared shopping list, track kitchen supplies, and record shared expenses. Receipt scanning will help users enter purchases: extracted items and prices will be reviewed and confirmed before being saved to the inventory and expense records.
+HomeLoop connects these tasks through a shared household workspace. Members will be able to manage a synchronised shopping list, track kitchen inventory and record shared expenses.
 
-The app is intended for students sharing accommodation, couples, and small families.
+Once the core workflow works reliably, we plan to add receipt scanning, expiry reminders and recipe suggestions.
 
-## Project Status
+## Planned Features
 
-**Current stage: Step 1 — Proposal and GitHub Setup**
+### Core Features
 
-This repository currently contains the initial project documentation. The features below describe the planned semester scope; implementation has not started.
+- **Households and accounts**
+  - Sign in, create a household or join using a 6-digit invitation code.
+  - Let the household creator manage membership and select the household currency.
 
-## Planned Core Features
+- **Shared shopping list**
+  - Add, edit and check off items.
+  - Synchronise changes across household members’ devices.
+  - Record who purchased each item.
 
-| Feature | Description |
-| --- | --- |
-| Households and invitations | Create a household and invite members using a six-digit code. Support an administrator role and a household currency. |
-| Shared shopping list | Add, update, and check off shopping items, with changes synchronized across household members. |
-| Kitchen inventory | Track item quantities, categories, and storage locations: fridge, freezer, or pantry. Support manual entry and receipt-assisted entry. |
-| Receipt scanning and review | Extract item names and prices from receipt images. Require users to review and correct the results before saving. |
-| Expenses and balances | Record shared purchases and bills, split costs equally, display member balances, and suggest settlement payments. Members can record payments as completed. |
-| Expiry reminders | Notify members about approaching inventory dates. Category-based estimates will be editable and must be verified by the user. |
-| Recipe suggestions | Suggest recipes using available inventory, prioritizing ingredients approaching their recorded expiry dates. |
+- **Kitchen inventory**
+  - Manually enter item names, quantities, storage locations and expiry dates.
+  - Mark items as consumed or discarded.
+  - Add items back to the shopping list.
+  - Track purchases with different expiry dates as separate batches.
 
-Payments will be recorded for tracking purposes; the app will not transfer money.
+- **Expenses and balances**
+  - Record purchases and household bills.
+  - Split expenses equally among household members.
+  - Calculate balances and suggest transfers to reduce the number of payments.
+  - Record completed settlements.
 
-## Optional Features
+### Features Planned After the Core Workflow
 
-The following features may be added if the core functionality is completed and time permits:
+- **Receipt scanning and review:** Extract item names and prices from receipt photos, then require users to review and confirm the results before saving.
+- **Expiry reminders:** Notify members about inventory items approaching their recorded expiry dates.
+- **Recipe suggestions:** Suggest recipes using available ingredients, prioritising items approaching expiry.
 
-- Ingredient recognition from a photo of the fridge.
-- A rotating household chore schedule.
-- Unequal expense splits by percentage, fixed amount, or selected members.
-- Monthly spending charts.
-- Food waste statistics.
-- Barcode scanning.
+### Optional Extensions
+
+- Fridge-photo recognition
+- Chore management
+- Uneven expense splits
+- Spending charts
+- Food-waste statistics
+- Barcode scanning
 
 ## Planned Technology Stack
 
-| Component | Planned technology |
-| --- | --- |
-| Mobile application | Flutter and Dart |
-| User authentication | Firebase Authentication |
-| Cloud database and live updates | Cloud Firestore |
-| Push notification delivery | Firebase Cloud Messaging |
-| Receipt extraction and recipe generation | An external image-capable AI API; Gemini is currently under consideration |
-| Optional on-device text recognition | Google ML Kit |
+| Technology | Planned Purpose |
+|------------|-----------------|
+| Flutter and Dart | Mobile interface and application logic |
+| Firebase Authentication | User accounts and sign-in |
+| Cloud Firestore | Household data storage and live synchronisation |
+| Firebase Cloud Functions | Scheduled inventory checks |
+| Firebase Cloud Messaging | Expiry notifications |
+| Gemini API — under consideration | Receipt extraction and recipe generation |
+| Google ML Kit — under consideration | On-device text recognition |
 
-Technology choices may be refined during development.
+## Data and Main Workflows
 
-## Data Requirements
+### Household Data
 
-HomeLoop will store:
+Cloud Firestore will store household membership, shopping lists, inventory, expenses and settlements. Firestore listeners will provide live updates, and access rules will restrict household data to its members.
 
-- **Users and households:** account references, household membership, roles, invitation information, and household settings.
-- **Shopping lists:** item names, quantities, purchase status, and the members who added or purchased each item.
-- **Inventory:** item names, categories, quantities, storage locations, and user-confirmed or estimated expiry dates.
-- **Expenses:** payer, amount, date, description, and each member's share.
-- **Settlements:** payments recorded between members to settle outstanding balances.
+### Receipt Processing
 
-Receipt images will be processed through the selected extraction service. Users will review extracted information before it becomes part of household records.
+1. The user photographs a receipt.
+2. The app extracts item names and prices.
+3. Extracted names are normalised using common product abbreviations and compared with unchecked shopping-list items.
+4. The user reviews, corrects and confirms the extracted information and suggested matches.
+5. The confirmed checkout updates the shopping list and inventory and creates one linked expense record.
 
-## Anticipated Challenges
+Unmatched products can be added as new items. Existing inventory matches will offer a quantity update, while purchases with different expiry dates will remain separate batches.
 
-- Reading abbreviated Turkish receipt entries and extracting prices accurately.
-- Keeping shared data consistent when multiple members make changes at the same time.
-- Connecting shopping, inventory, and expenses without creating duplicate records.
-- Calculating balances and simplifying settlement payments correctly.
-- Providing useful expiry estimates when receipts do not contain expiry dates.
-- Managing external API latency, usage costs, and failed requests.
-- Ensuring household data is accessible only to authorized members.
+Each checkout will use a unique identifier linking its inventory updates and expense record. Atomic database operations and identifier checks will prevent partial saves and repeated submissions from creating additional records.
 
-Manual entry will remain available when receipt extraction is unavailable or inaccurate.
+A receipt matching an existing purchase’s merchant, date and total will trigger a duplicate warning for review.
+
+### Expiry Dates and Reminders
+
+Inventory items will use predefined categories such as dairy, produce, meat, frozen food and dry goods.
+
+Users will enter the expiry date printed on the product packaging. Dates can be left blank for products without one and edited when needed.
+
+A scheduled Firebase Cloud Function will check inventory dates daily and send notifications through Firebase Cloud Messaging for items within the reminder window. Stored reminder status will prevent repeated alerts for the same item and threshold.
+
+## Development Priorities
+
+1. Establish authentication, households and shared navigation.
+2. Implement the shared shopping list and manual inventory.
+3. Implement expenses, balances and settlements.
+4. Integrate and test the core workflow.
+5. Add receipt scanning and mandatory review.
+6. Add expiry reminders and recipe suggestions.
+7. Consider optional extensions if time permits.
+
+## Potential Challenges
+
+- **Receipt accuracy:** Abbreviations, poor image quality and inconsistent layouts may cause extraction errors. Mandatory review and an abbreviation list will help address these issues.
+- **API availability:** Manual entry will remain available when scanning fails or API access is unavailable.
+- **Concurrent updates:** Firestore transactions and linked checkout records will help keep purchases, inventory and expenses consistent.
+- **Expiry data quality:** Missing or incorrectly entered dates may affect reminders. Users will be able to review and edit recorded dates.
+- **Settlement calculations:** The app will use a straightforward approach to reduce transfers without claiming an absolute minimum.
 
 ## Team
 
-**Course:** CS310 Mobile Application Development  
-**Group:** 20  
+| Member | Student ID | Responsibilities |
+|--------|------------|------------------|
+| Sena Kahya | 32450 | Step 1 coordination, README and final review; household creation, membership/settings screens and shared navigation |
+| Zişan Yeşil | 32587 | Step 1 Firebase and database planning; authentication, shared shopping-list screens, synchronisation and purchase updates |
+| Fethiye Ebrar Güçlü | 32027 | Step 1 challenges; receipt capture/review, recipe screens, extraction and matching logic |
+| Sibel Çelen | 32629 | Step 1 data requirements; expense, balance and settlement screens and calculation logic |
+| Deniz Polat | 37476 | Step 1 overview and features; inventory and expiry screens, stock updates and reminder integration |
+
+Each member will own their module’s screens and application logic, including database integration and testing.
+
+All members will contribute to integration testing, code review and documentation.
+
 **Step 1 Coordinator:** Sena Kahya
-
-| Member | Student ID | Step 1 responsibilities | Planned semester responsibilities |
-| --- | --- | --- | --- |
-| Sena Kahya | 32450 | Coordination, README, and final review | Interface design and shared screens |
-| Zişan Yeşil | 32587 | GitHub repository setup and initial commit | Database, authentication, invitations, and shared shopping list |
-| Fethiye Ebrar Güçlü | 32027 | Potential challenges | Receipt extraction and recipe suggestions |
-| Sibel Çelen | 32629 | Data requirements | Expenses, balances, and settlement calculations |
-| Deniz Polat | 37476 | App overview and feature definition | Notifications, testing, and documentation |
-
-The Step 1 coordinator organizes meetings, follows up on task assignments, and communicates with the assigned TA. The coordinator will change for each project step.
-
-All members will contribute throughout the semester, review submissions, and be able to explain their own work. Responsibilities may be adjusted as implementation progresses.
 
 ## Repository
 
-https://github.com/senakahya/cs310-HomeLoop
+[github.com/senakahya/cs310-HomeLoop](https://github.com/senakahya/cs310-HomeLoop)
