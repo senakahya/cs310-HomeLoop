@@ -27,8 +27,8 @@ Once the core workflow works reliably, we plan to add receipt scanning, expiry r
   - Synchronise changes across household members’ devices.
   - Record who purchased each item.
 
-- **Kitchen inventory**
-  - Manually enter item names, quantities, storage locations and expiry dates.
+- **Manual kitchen inventory**
+  - Enter item names, quantities, storage locations and expiry dates.
   - Mark items as consumed or discarded.
   - Add items back to the shopping list.
   - Track purchases with different expiry dates as separate batches.
@@ -41,8 +41,8 @@ Once the core workflow works reliably, we plan to add receipt scanning, expiry r
 
 ### Features Planned After the Core Workflow
 
-- **Receipt scanning and review:** Extract item names and prices from receipt photos, then require users to review and confirm the results before saving.
-- **Expiry reminders:** Notify members about inventory items approaching their recorded expiry dates.
+- **Receipt scanning and review:** Extract item names and prices from receipt photos, then let users correct and confirm the results before saving.
+- **Expiry reminders:** Notify members about items approaching their confirmed expiry dates.
 - **Recipe suggestions:** Suggest recipes using available ingredients, prioritising items approaching expiry.
 
 ### Optional Extensions
@@ -82,17 +82,21 @@ Cloud Firestore will store household membership, shopping lists, inventory, expe
 
 Unmatched products can be added as new items. Existing inventory matches will offer a quantity update, while purchases with different expiry dates will remain separate batches.
 
-Each checkout will use a unique identifier linking its inventory updates and expense record. Atomic database operations and identifier checks will prevent partial saves and repeated submissions from creating additional records.
+Each checkout will have a unique identifier linking its inventory updates and single expense record. Saving will use an atomic database operation, and repeated submissions with the same identifier will not create additional records.
 
 A receipt matching an existing purchase’s merchant, date and total will trigger a duplicate warning for review.
 
-### Expiry Dates and Reminders
+### Expiry Date Management
 
-Inventory items will use predefined categories such as dairy, produce, meat, frozen food and dry goods.
+Users will enter the expiry date printed on each product’s packaging. The date can be left blank for products without one and edited when needed.
 
-Users will enter the expiry date printed on the product packaging. Dates can be left blank for products without one and edited when needed.
+Purchases of the same product with different expiry dates will be tracked as separate batches.
 
-A scheduled Firebase Cloud Function will check inventory dates daily and send notifications through Firebase Cloud Messaging for items within the reminder window. Stored reminder status will prevent repeated alerts for the same item and threshold.
+### Reminders
+
+A scheduled Firebase Cloud Function will check inventory dates daily and send notifications through Firebase Cloud Messaging for items within the reminder window.
+
+Stored reminder status will prevent repeated alerts for the same item and threshold.
 
 ## Development Priorities
 
@@ -106,23 +110,23 @@ A scheduled Firebase Cloud Function will check inventory dates daily and send no
 
 ## Potential Challenges
 
-- **Receipt accuracy:** Abbreviations, poor image quality and inconsistent layouts may cause extraction errors. Mandatory review and an abbreviation list will help address these issues.
+- **Receipt accuracy:** Abbreviations, poor image quality and inconsistent layouts may produce incorrect results. Mandatory review and an abbreviation list will help address these errors.
 - **API availability:** Manual entry will remain available when scanning fails or API access is unavailable.
-- **Concurrent updates:** Firestore transactions and linked checkout records will help keep purchases, inventory and expenses consistent.
+- **Concurrent updates:** Firestore transactions and linked checkout records will help keep purchases, inventory and balances consistent.
 - **Expiry data quality:** Missing or incorrectly entered dates may affect reminders. Users will be able to review and edit recorded dates.
-- **Settlement calculations:** The app will use a straightforward approach to reduce transfers without claiming an absolute minimum.
+- **Settlement calculations:** The app will use a straightforward approach that reduces transfers without claiming an absolute minimum.
 
 ## Team
 
-| Member | Student ID | Responsibilities |
-|--------|------------|------------------|
-| Sena Kahya | 32450 | Step 1 coordination, README and final review; household creation, membership/settings screens and shared navigation |
-| Zişan Yeşil | 32587 | Step 1 Firebase and database planning; authentication, shared shopping-list screens, synchronisation and purchase updates |
-| Fethiye Ebrar Güçlü | 32027 | Step 1 challenges; receipt capture/review, recipe screens, extraction and matching logic |
-| Sibel Çelen | 32629 | Step 1 data requirements; expense, balance and settlement screens and calculation logic |
-| Deniz Polat | 37476 | Step 1 overview and features; inventory and expiry screens, stock updates and reminder integration |
+| Member | Student ID | Step 1 Tasks | Development Responsibilities |
+|--------|------------|--------------|------------------------------|
+| Sena Kahya | 32450 | Coordination, README and final review | Household creation, membership/settings screens and shared navigation |
+| Zişan Yeşil | 32587 | Firebase and database planning | Authentication and shared shopping-list screens, synchronisation and purchase updates |
+| Fethiye Ebrar Güçlü | 32027 | Potential challenges | Receipt capture/review and recipe screens, extraction and matching logic |
+| Sibel Çelen | 32629 | Data requirements | Expense, balance and settlement screens and calculation logic |
+| Deniz Polat | 32476 | App overview and features | Inventory and expiry screens, stock updates and reminder integration |
 
-Each member will own their module’s screens and application logic, including database integration and testing.
+Each member will own screens and application logic, including database integration and testing for their module.
 
 All members will contribute to integration testing, code review and documentation.
 
