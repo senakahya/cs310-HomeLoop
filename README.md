@@ -139,3 +139,14 @@ All members will contribute to integration testing, code review and documentatio
 ## Repository
 
 [github.com/senakahya/cs310-HomeLoop](https://github.com/senakahya/cs310-HomeLoop)
+
+## Run on Android
+
+Developed with Flutter 3.47.7 (stable). Open the repository root in Android
+Studio and start an Android emulator from Device Manager. From the repository
+root, run:
+
+```sh
+flutter pub get
+flutter run
+```
