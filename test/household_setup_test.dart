@@ -26,7 +26,7 @@ void main() {
     expect(HomeStore.instance.household?.name, 'Test Flat');
   });
 
-  testWidgets('Joining allows retry after an invalid invite code',
+  testWidgets('Joining allows retry and opens household member management',
       (tester) async {
     await openSetup(tester);
     final joinOption = find.text('Join with a code');
@@ -48,5 +48,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sunny Flat'), findsOneWidget);
+
+    await tester.tap(find.text('Manage household'));
+    await tester.pumpAndSettle();
+    expect(find.text('Invite code'), findsOneWidget);
+
+    final store = HomeStore.instance;
+    final originalMembers = store.members.toList();
+    addTearDown(() => store.members
+      ..clear()
+      ..addAll(originalMembers));
+
+    await tester.tap(find.byTooltip('Member options').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove from household'));
+    await tester.pumpAndSettle();
+    expect(store.members, hasLength(originalMembers.length));
+
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+    expect(store.members, hasLength(originalMembers.length - 1));
   });
 }

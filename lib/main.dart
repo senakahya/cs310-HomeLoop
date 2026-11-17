@@ -28,10 +28,27 @@ class HomeLoopApp extends StatelessWidget {
                 ),
               ),
             ),
-        AppRoutes.main: (_) => Scaffold(
+        AppRoutes.main: (context) => Scaffold(
               appBar: AppBar(title: const Text('HomeLoop')),
               body: Center(
-                child: Text(HomeStore.instance.household?.name ?? 'HomeLoop'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListenableBuilder(
+                      listenable: HomeStore.instance,
+                      builder: (_, __) => Text(
+                        HomeStore.instance.household?.name ?? 'HomeLoop',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).pushNamed(
+                        AppRoutes.household,
+                      ),
+                      child: const Text('Manage household'),
+                    ),
+                  ],
+                ),
               ),
             ),
       },
