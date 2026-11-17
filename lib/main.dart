@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'data/home_store.dart';
+import 'routes/app_routes.dart';
+import 'theme/app_theme.dart';
+
 void main() {
   runApp(const HomeLoopApp());
 }
@@ -9,8 +13,28 @@ class HomeLoopApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('HomeLoop'))),
+    return MaterialApp(
+      title: 'HomeLoop',
+      theme: AppTheme.light,
+      routes: {
+        ...AppRoutes.householdRoutes,
+        AppRoutes.login: (context) => Scaffold(
+              appBar: AppBar(title: const Text('HomeLoop')),
+              body: Center(
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context)
+                      .pushNamed(AppRoutes.chooseHousehold),
+                  child: const Text('Set up your household'),
+                ),
+              ),
+            ),
+        AppRoutes.main: (_) => Scaffold(
+              appBar: AppBar(title: const Text('HomeLoop')),
+              body: Center(
+                child: Text(HomeStore.instance.household?.name ?? 'HomeLoop'),
+              ),
+            ),
+      },
     );
   }
 }
