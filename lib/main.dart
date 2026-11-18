@@ -20,6 +20,7 @@ class HomeLoopApp extends StatelessWidget {
         ...AppRoutes.householdRoutes,
         ...AppRoutes.authRoutes,
         ...AppRoutes.shoppingRoutes,
+        ...AppRoutes.expenseRoutes,
         AppRoutes.main: (context) => Scaffold(
               appBar: AppBar(title: const Text('HomeLoop')),
               body: Center(
