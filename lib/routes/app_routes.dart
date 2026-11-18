@@ -12,6 +12,9 @@ import '../screens/household/choose_household_screen.dart';
 import '../screens/household/create_household_screen.dart';
 import '../screens/household/household_screen.dart';
 import '../screens/household/join_household_screen.dart';
+import '../screens/inventory/inventory_detail_screen.dart';
+import '../screens/inventory/inventory_form_screen.dart';
+import '../screens/inventory/stock_update_screen.dart';
 import '../screens/shopping/confirm_purchase_screen.dart';
 import '../screens/shopping/shopping_item_form_screen.dart';
 
@@ -31,6 +34,7 @@ class AppRoutes {
 
   static const inventoryForm = '/inventory/form';
   static const inventoryDetail = '/inventory/detail';
+  static const stockUpdate = '/inventory/stock';
 
   static const expenseForm = '/expenses/form';
   static const expenseDetail = '/expenses/detail';
@@ -59,6 +63,24 @@ class AppRoutes {
       return ConfirmPurchaseScreen(
         itemIds: args is List<String> ? args : const [],
       );
+    },
+  };
+
+  static final inventoryRoutes = <String, WidgetBuilder>{
+    inventoryForm: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return InventoryFormScreen(
+        args: args is InventoryFormArgs ? args : const InventoryFormArgs(),
+      );
+    },
+    inventoryDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return InventoryDetailScreen(itemId: args is String ? args : '');
+    },
+    stockUpdate: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as StockUpdateArgs;
+      return StockUpdateScreen(args: args);
     },
   };
 
