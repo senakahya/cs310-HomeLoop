@@ -18,16 +18,8 @@ class HomeLoopApp extends StatelessWidget {
       theme: AppTheme.light,
       routes: {
         ...AppRoutes.householdRoutes,
-        AppRoutes.login: (context) => Scaffold(
-              appBar: AppBar(title: const Text('HomeLoop')),
-              body: Center(
-                child: FilledButton(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(AppRoutes.chooseHousehold),
-                  child: const Text('Set up your household'),
-                ),
-              ),
-            ),
+        ...AppRoutes.authRoutes,
+        ...AppRoutes.shoppingRoutes,
         AppRoutes.main: (context) => Scaffold(
               appBar: AppBar(title: const Text('HomeLoop')),
               body: Center(

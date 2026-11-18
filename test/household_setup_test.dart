@@ -8,7 +8,9 @@ void main() {
 
   Future<void> openSetup(WidgetTester tester) async {
     await tester.pumpWidget(const HomeLoopApp());
-    await tester.tap(find.text('Set up your household'));
+    await tester.enterText(find.byType(TextFormField).first, 'test@homeloop.app');
+    await tester.enterText(find.byType(TextFormField).last, 'password123');
+    await tester.tap(find.text('Log in'));
     await tester.pumpAndSettle();
   }
 
