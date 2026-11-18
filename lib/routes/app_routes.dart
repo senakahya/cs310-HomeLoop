@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/expense.dart';
 import '../models/shopping_item.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
+import '../screens/expenses/balances_screen.dart';
+import '../screens/expenses/expense_detail_screen.dart';
+import '../screens/expenses/expense_form_screen.dart';
+import '../screens/expenses/record_payment_screen.dart';
 import '../screens/household/choose_household_screen.dart';
 import '../screens/household/create_household_screen.dart';
 import '../screens/household/household_screen.dart';
@@ -30,6 +35,7 @@ class AppRoutes {
   static const expenseForm = '/expenses/form';
   static const expenseDetail = '/expenses/detail';
   static const balances = '/balances';
+  static const recordPayment = '/balances/record';
 
   static final householdRoutes = <String, WidgetBuilder>{
     chooseHousehold: (_) => const ChooseHouseholdScreen(),
@@ -53,6 +59,23 @@ class AppRoutes {
       return ConfirmPurchaseScreen(
         itemIds: args is List<String> ? args : const [],
       );
+    },
+  };
+
+  /// S16–S19 · Expenses and balances.
+  static final expenseRoutes = <String, WidgetBuilder>{
+    expenseForm: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return ExpenseFormScreen(expenseId: args is String ? args : null);
+    },
+    expenseDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return ExpenseDetailScreen(expenseId: args is String ? args : '');
+    },
+    balances: (_) => const BalancesScreen(),
+    recordPayment: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return RecordPaymentScreen(payment: args as SuggestedPayment);
     },
   };
 }
