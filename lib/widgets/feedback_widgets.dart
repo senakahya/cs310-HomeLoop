@@ -27,7 +27,7 @@ class InfoNote extends StatelessWidget {
         iconColor = AppColors.primary;
         break;
       case NoteTone.warning:
-        bg = const Color(0xFFFFF6E6);
+        bg = const Color(0xFFFAF3E7);
         iconColor = AppColors.amber;
         break;
       case NoteTone.error:
