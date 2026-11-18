@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:homeloop/data/home_store.dart';
 import 'package:homeloop/main.dart';
+import 'package:homeloop/widgets/floating_tab_bar.dart';
 
 void main() {
   setUp(() => HomeStore.instance.leaveHousehold());
 
   Future<void> openSetup(WidgetTester tester) async {
     await tester.pumpWidget(const HomeLoopApp());
-    await tester.enterText(find.byType(TextFormField).first, 'test@homeloop.app');
+    await tester.enterText(
+        find.byType(TextFormField).first, 'test@homeloop.app');
     await tester.enterText(find.byType(TextFormField).last, 'password123');
     await tester.tap(find.text('Log in'));
     await tester.pumpAndSettle();
@@ -26,6 +28,19 @@ void main() {
 
     expect(find.text('Test Flat'), findsOneWidget);
     expect(HomeStore.instance.household?.name, 'Test Flat');
+
+    final bar = find.byType(FloatingTabBar);
+    for (final (index, icon) in [
+      (1, Icons.shopping_cart_outlined),
+      (2, Icons.kitchen_outlined),
+      (3, Icons.account_balance_wallet_outlined),
+      (0, Icons.home_outlined),
+    ]) {
+      await tester.tap(find.descendant(of: bar, matching: find.byIcon(icon)));
+      await tester.pumpAndSettle();
+      expect(tester.widget<FloatingTabBar>(bar).currentIndex, index);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('Joining allows retry and opens household member management',
@@ -51,7 +66,7 @@ void main() {
 
     expect(find.text('Sunny Flat'), findsOneWidget);
 
-    await tester.tap(find.text('Manage household'));
+    await tester.tap(find.text('Sunny Flat'));
     await tester.pumpAndSettle();
     expect(find.text('Invite code'), findsOneWidget);
 
