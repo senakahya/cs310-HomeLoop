@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
-enum AppButtonStyle { primary, secondary, danger, dangerSoft, text, lime }
+enum AppButtonStyle { primary, secondary, danger, dangerSoft, text, accent }
 
 /// Pill-shaped button used everywhere (Primary action, Secondary / Cancel, …).
 class AppButton extends StatelessWidget {
@@ -52,8 +52,8 @@ class AppButton extends StatelessWidget {
         background = Colors.transparent;
         foreground = AppColors.primary;
         break;
-      case AppButtonStyle.lime:
-        background = AppColors.lime;
+      case AppButtonStyle.accent:
+        background = AppColors.accent;
         foreground = AppColors.ink;
         break;
     }
@@ -136,7 +136,7 @@ class CircleIconButton extends StatelessWidget {
           child: Icon(
             icon,
             size: 21,
-            color: iconColor ?? (dark ? AppColors.lime : AppColors.ink),
+            color: iconColor ?? (dark ? AppColors.accent : AppColors.ink),
           ),
         ),
       ),

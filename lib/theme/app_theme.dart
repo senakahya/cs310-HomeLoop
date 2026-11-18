@@ -31,7 +31,7 @@ class AppTheme {
           fontFamily: AppTextStyles.bodyFont,
           color: Colors.white,
         ),
-        actionTextColor: AppColors.lime,
+        actionTextColor: AppColors.accent,
       ),
     );
   }

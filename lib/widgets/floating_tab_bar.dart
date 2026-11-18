@@ -9,7 +9,7 @@ class TabBarItem {
   const TabBarItem(this.label, this.icon);
 }
 
-/// Dark floating tab bar. The active tab is a lime pill with its label.
+/// Dark floating tab bar. The active tab is a champagne pill with its label.
 class FloatingTabBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -32,7 +32,7 @@ class FloatingTabBar extends StatelessWidget {
         color: AppColors.ink,
         borderRadius: BorderRadius.circular(33),
         boxShadow: const [
-          BoxShadow(color: Color(0x660E1A14), blurRadius: 30, offset: Offset(0, 18), spreadRadius: -14),
+          BoxShadow(color: Color(0x661F2522), blurRadius: 30, offset: Offset(0, 18), spreadRadius: -14),
         ],
       ),
       child: Row(
@@ -53,7 +53,7 @@ class FloatingTabBar extends StatelessWidget {
                     height: 48,
                     margin: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
-                      color: i == currentIndex ? AppColors.lime : Colors.transparent,
+                      color: i == currentIndex ? AppColors.accent : Colors.transparent,
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Row(
