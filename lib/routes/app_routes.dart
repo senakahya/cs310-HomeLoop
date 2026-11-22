@@ -15,6 +15,7 @@ import '../screens/household/join_household_screen.dart';
 import '../screens/inventory/inventory_detail_screen.dart';
 import '../screens/inventory/inventory_form_screen.dart';
 import '../screens/inventory/stock_update_screen.dart';
+import '../screens/profile/profile_screen.dart';
 import '../screens/shell/main_shell.dart';
 import '../screens/shopping/confirm_purchase_screen.dart';
 import '../screens/shopping/shopping_item_form_screen.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const joinHousehold = '/household/join';
   static const main = '/main';
   static const household = '/household';
+  static const profile = '/profile';
 
   static const shoppingItem = '/shopping/item';
   static const confirmPurchase = '/shopping/confirm';
@@ -43,6 +45,7 @@ class AppRoutes {
   static const recordPayment = '/balances/record';
 
   static final mainRoutes = <String, WidgetBuilder>{
+    profile: (_) => const ProfileScreen(),
     main: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       return MainShell(initialTab: args is int ? args : 0);
