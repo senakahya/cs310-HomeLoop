@@ -74,19 +74,29 @@ class HouseholdScreen extends StatelessWidget {
   }
 
   Future<void> _leave(BuildContext context) async {
+    final store = HomeStore.instance;
+    final others = store.households.where((h) => h != store.household).toList();
+    final destination = others.isEmpty
+        ? 'return to household setup to create or join a household'
+        : 'switch to ${others.first.name}';
     final confirmed = await showConfirmDialog(
       context,
       title: 'Leave household?',
       message:
-          'You will no longer see this household. You can join again with an invite code.',
-      confirmLabel: 'Leave',
+          'You will lose access to ${store.household?.name ?? 'this household'}\'s '
+          'shopping list, inventory and expenses. Past expenses and any open '
+          'balances will remain in the household history.\n\n'
+          'You will stay signed in and $destination. '
+          'You can rejoin with an invite code.',
+      confirmLabel: 'Leave household',
       danger: true,
       icon: Icons.logout_rounded,
     );
     if (confirmed && context.mounted) {
-      HomeStore.instance.leaveHousehold();
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.chooseHousehold, (route) => false);
+      store.leaveHousehold();
+      Navigator.of(context).pushNamedAndRemoveUntil(
+          store.household == null ? AppRoutes.chooseHousehold : AppRoutes.main,
+          (route) => false);
     }
   }
 
@@ -169,28 +179,17 @@ class HouseholdScreen extends StatelessWidget {
                       style: AppTextStyles.caption),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
-                        label: 'Sign out',
-                        icon: Icons.logout_rounded,
-                        style: AppButtonStyle.secondary,
-                        onPressed: () => Navigator.of(context)
-                            .pushNamedAndRemoveUntil(
-                                AppRoutes.login, (route) => false),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: AppButton(
-                        label: 'Leave',
-                        icon: Icons.door_front_door_outlined,
-                        style: AppButtonStyle.dangerSoft,
-                        onPressed: () => _leave(context),
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'Leaving removes your access to this household. Your account '
+                  'stays signed in, and past expenses and open balances are kept.',
+                  style: AppTextStyles.caption,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: 'Leave household',
+                  icon: Icons.door_front_door_outlined,
+                  style: AppButtonStyle.dangerSoft,
+                  onPressed: () => _leave(context),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
               ],

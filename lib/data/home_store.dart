@@ -17,6 +17,10 @@ class HomeStore extends ChangeNotifier {
     _loadSampleData();
   }
 
+  /// An independent demo store, useful for verifying household isolation.
+  @visibleForTesting
+  HomeStore.demo() : this._();
+
   /// The one shared instance used by every screen.
   static final HomeStore instance = HomeStore._();
 
@@ -24,11 +28,40 @@ class HomeStore extends ChangeNotifier {
   String _id(String prefix) => '$prefix${_nextId++}';
 
   // ---------------------------------------------------------------- members
-  final List<Member> members = [];
-  String currentUserId = 'sena';
-  Household? household;
+  final String currentUserId = 'sena';
+  static const _account = Member(id: 'sena', name: 'Sena', colorHex: 'E07A5F');
+  final Map<String, _HouseholdData> _householdData = {};
+  final Set<String> _joinedCodes = {};
+  _HouseholdData? _activeData;
+  int _nextInviteCode = 482914;
 
-  Member get currentUser => memberById(currentUserId);
+  Household? get household => _activeData?.household;
+  List<Household> get households => List.unmodifiable(
+      _joinedCodes.map((code) => _householdData[code]!.household));
+  List<Member> get members => _activeData?.members ?? const [];
+
+  Member get currentUser =>
+      members.firstWhere((member) => member.id == currentUserId,
+          orElse: () => _account);
+
+  /// Resets only the in-memory prototype, so tests start with one demo home.
+  @visibleForTesting
+  void resetDemo() {
+    _householdData.clear();
+    _joinedCodes.clear();
+    _activeData = null;
+    _nextId = 100;
+    _nextInviteCode = 482914;
+    _loadSampleData();
+    notifyListeners();
+  }
+
+  bool switchHousehold(String inviteCode) {
+    if (!_joinedCodes.contains(inviteCode)) return false;
+    _activeData = _householdData[inviteCode];
+    notifyListeners();
+    return true;
+  }
 
   Member memberById(String id) {
     return members.firstWhere(
@@ -44,24 +77,35 @@ class HomeStore extends ChangeNotifier {
   String get currency => household?.currencySymbol ?? '₺';
 
   void createHousehold(String name, Currency currency) {
-    household = Household(
+    // Demo codes are unique within this session; Firebase will issue real codes.
+    while (_householdData.containsKey('$_nextInviteCode')) {
+      _nextInviteCode++;
+    }
+    final newHousehold = Household(
       name: name,
       currencyCode: currency.code,
       currencySymbol: currency.symbol,
-      inviteCode: '482913',
+      inviteCode: '${_nextInviteCode++}',
     );
+    final data = _HouseholdData(newHousehold);
+    data.members.add(Member(
+      id: currentUser.id,
+      name: currentUser.name,
+      colorHex: currentUser.colorHex,
+      isOwner: true,
+    ));
+    _householdData[newHousehold.inviteCode] = data;
+    _joinedCodes.add(newHousehold.inviteCode);
+    _activeData = data;
     notifyListeners();
   }
 
   /// Returns false when the code does not belong to a household (S05·a).
   bool joinHousehold(String code) {
-    if (code != '482913') return false;
-    household ??= Household(
-      name: 'Sunny Flat',
-      currencyCode: 'TRY',
-      currencySymbol: '₺',
-      inviteCode: '482913',
-    );
+    final data = _householdData[code];
+    if (data == null) return false;
+    _joinedCodes.add(code);
+    _activeData = data;
     notifyListeners();
     return true;
   }
@@ -77,12 +121,15 @@ class HomeStore extends ChangeNotifier {
   }
 
   void leaveHousehold() {
-    household = null;
+    _joinedCodes.remove(household?.inviteCode);
+    _activeData =
+        _joinedCodes.isEmpty ? null : _householdData[_joinedCodes.first];
     notifyListeners();
   }
 
   // ---------------------------------------------------------------- shopping
-  final List<ShoppingItem> shoppingItems = [];
+  List<ShoppingItem> get shoppingItems =>
+      _activeData?.shoppingItems ?? const [];
 
   List<ShoppingItem> get toBuy =>
       shoppingItems.where((i) => !i.isPurchased).toList();
@@ -108,7 +155,8 @@ class HomeStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateShoppingItem(ShoppingItem item, String name, double quantity, String unit) {
+  void updateShoppingItem(
+      ShoppingItem item, String name, double quantity, String unit) {
     item.name = name;
     item.quantity = quantity;
     item.unit = unit;
@@ -141,7 +189,7 @@ class HomeStore extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------- inventory
-  final List<InventoryItem> inventory = [];
+  List<InventoryItem> get inventory => _activeData?.inventory ?? const [];
 
   /// Sorted by the soonest expiry date; items without a date go last.
   List<InventoryItem> get inventorySorted {
@@ -180,7 +228,8 @@ class HomeStore extends ChangeNotifier {
     required StorageLocation location,
     DateTime? expiry,
   }) {
-    final batch = InventoryBatch(id: _id('b'), quantity: quantity, expiry: expiry);
+    final batch =
+        InventoryBatch(id: _id('b'), quantity: quantity, expiry: expiry);
     for (final item in inventory) {
       if (item.name.toLowerCase() == name.toLowerCase() &&
           item.location == location &&
@@ -241,8 +290,8 @@ class HomeStore extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------- expenses
-  final List<Expense> expenses = [];
-  final List<Settlement> settlements = [];
+  List<Expense> get expenses => _activeData?.expenses ?? const [];
+  List<Settlement> get settlements => _activeData?.settlements ?? const [];
 
   List<Expense> get expensesSorted {
     final list = List<Expense>.from(expenses);
@@ -265,7 +314,8 @@ class HomeStore extends ChangeNotifier {
     return total;
   }
 
-  double shareOf(double amount) => members.isEmpty ? 0 : amount / members.length;
+  double shareOf(double amount) =>
+      members.isEmpty ? 0 : amount / members.length;
 
   double paidBy(String memberId) {
     double total = 0;
@@ -296,7 +346,8 @@ class HomeStore extends ChangeNotifier {
     return expense;
   }
 
-  void updateExpense(Expense e, String title, double amount, String paidById, DateTime date) {
+  void updateExpense(
+      Expense e, String title, double amount, String paidById, DateTime date) {
     e.title = title;
     e.amount = amount;
     e.paidById = paidById;
@@ -325,8 +376,12 @@ class HomeStore extends ChangeNotifier {
       }
     }
     for (final s in settlements) {
-      if (result.containsKey(s.fromId)) result[s.fromId] = result[s.fromId]! + s.amount;
-      if (result.containsKey(s.toId)) result[s.toId] = result[s.toId]! - s.amount;
+      if (result.containsKey(s.fromId)) {
+        result[s.fromId] = result[s.fromId]! + s.amount;
+      }
+      if (result.containsKey(s.toId)) {
+        result[s.toId] = result[s.toId]! - s.amount;
+      }
     }
     // round to cents
     result.updateAll((key, value) => (value * 100).roundToDouble() / 100);
@@ -367,7 +422,8 @@ class HomeStore extends ChangeNotifier {
 
   /// S19: records a payment that was made outside the app.
   void recordPayment(String fromId, String toId, double amount, DateTime date) {
-    settlements.add(Settlement(fromId: fromId, toId: toId, amount: amount, date: date));
+    settlements.add(
+        Settlement(fromId: fromId, toId: toId, amount: amount, date: date));
     notifyListeners();
   }
 
@@ -376,6 +432,16 @@ class HomeStore extends ChangeNotifier {
     final today = Fmt.today();
     DateTime inDays(int n) => today.add(Duration(days: n));
 
+    final sampleHousehold = Household(
+      name: 'Sunny Flat',
+      currencyCode: 'TRY',
+      currencySymbol: '₺',
+      inviteCode: '482913',
+    );
+    _activeData = _HouseholdData(sampleHousehold);
+    _householdData[sampleHousehold.inviteCode] = _activeData!;
+    _joinedCodes.add(sampleHousehold.inviteCode);
+
     members.addAll(const [
       Member(id: 'sena', name: 'Sena', colorHex: 'E07A5F', isOwner: true),
       Member(id: 'zisan', name: 'Zişan', colorHex: '3D7DD8'),
@@ -383,55 +449,143 @@ class HomeStore extends ChangeNotifier {
       Member(id: 'deniz', name: 'Deniz', colorHex: '2A9D8F'),
     ]);
 
-    household = Household(
-      name: 'Sunny Flat',
-      currencyCode: 'TRY',
-      currencySymbol: '₺',
-      inviteCode: '482913',
-    );
-
     shoppingItems.addAll([
-      ShoppingItem(id: 's1', name: 'Milk', quantity: 2, unit: 'L', addedById: 'zisan'),
-      ShoppingItem(id: 's2', name: 'Eggs', quantity: 12, unit: 'pcs', addedById: 'sena'),
-      ShoppingItem(id: 's3', name: 'Tomatoes', quantity: 1, unit: 'kg', addedById: 'ebrar'),
-      ShoppingItem(id: 's4', name: 'Olive oil', quantity: 1, unit: 'bottle', addedById: 'deniz'),
-      ShoppingItem(id: 's5', name: 'Bread', quantity: 1, unit: 'loaf', addedById: 'sena'),
       ShoppingItem(
-        id: 's6', name: 'Pasta', quantity: 3, unit: 'pack', addedById: 'zisan',
-        isPurchased: true, boughtById: 'ebrar', purchasedOn: inDays(-1),
+          id: 's1', name: 'Milk', quantity: 2, unit: 'L', addedById: 'zisan'),
+      ShoppingItem(
+          id: 's2', name: 'Eggs', quantity: 12, unit: 'pcs', addedById: 'sena'),
+      ShoppingItem(
+          id: 's3',
+          name: 'Tomatoes',
+          quantity: 1,
+          unit: 'kg',
+          addedById: 'ebrar'),
+      ShoppingItem(
+          id: 's4',
+          name: 'Olive oil',
+          quantity: 1,
+          unit: 'bottle',
+          addedById: 'deniz'),
+      ShoppingItem(
+          id: 's5',
+          name: 'Bread',
+          quantity: 1,
+          unit: 'loaf',
+          addedById: 'sena'),
+      ShoppingItem(
+        id: 's6',
+        name: 'Pasta',
+        quantity: 3,
+        unit: 'pack',
+        addedById: 'zisan',
+        isPurchased: true,
+        boughtById: 'ebrar',
+        purchasedOn: inDays(-1),
       ),
       ShoppingItem(
-        id: 's7', name: 'Toilet paper', quantity: 1, unit: 'pack', addedById: 'deniz',
-        isPurchased: true, boughtById: 'sena', purchasedOn: inDays(-2),
+        id: 's7',
+        name: 'Toilet paper',
+        quantity: 1,
+        unit: 'pack',
+        addedById: 'deniz',
+        isPurchased: true,
+        boughtById: 'sena',
+        purchasedOn: inDays(-2),
       ),
     ]);
 
     inventory.addAll([
-      InventoryItem(id: 'i1', name: 'Yogurt', unit: 'g', location: StorageLocation.fridge,
-          batches: [InventoryBatch(id: 'b1', quantity: 500, expiry: inDays(1))]),
-      InventoryItem(id: 'i2', name: 'Milk', unit: 'L', location: StorageLocation.fridge, batches: [
-        InventoryBatch(id: 'b2', quantity: 1, expiry: inDays(2)),
-        InventoryBatch(id: 'b3', quantity: 2, expiry: inDays(10)),
-      ]),
-      InventoryItem(id: 'i3', name: 'Eggs', unit: 'pcs', location: StorageLocation.fridge,
+      InventoryItem(
+          id: 'i1',
+          name: 'Yogurt',
+          unit: 'g',
+          location: StorageLocation.fridge,
+          batches: [
+            InventoryBatch(id: 'b1', quantity: 500, expiry: inDays(1))
+          ]),
+      InventoryItem(
+          id: 'i2',
+          name: 'Milk',
+          unit: 'L',
+          location: StorageLocation.fridge,
+          batches: [
+            InventoryBatch(id: 'b2', quantity: 1, expiry: inDays(2)),
+            InventoryBatch(id: 'b3', quantity: 2, expiry: inDays(10)),
+          ]),
+      InventoryItem(
+          id: 'i3',
+          name: 'Eggs',
+          unit: 'pcs',
+          location: StorageLocation.fridge,
           batches: [InventoryBatch(id: 'b4', quantity: 6, expiry: inDays(14))]),
-      InventoryItem(id: 'i4', name: 'Chicken breast', unit: 'kg', location: StorageLocation.freezer,
+      InventoryItem(
+          id: 'i4',
+          name: 'Chicken breast',
+          unit: 'kg',
+          location: StorageLocation.freezer,
           batches: [InventoryBatch(id: 'b5', quantity: 1, expiry: inDays(38))]),
-      InventoryItem(id: 'i5', name: 'Rice', unit: 'kg', location: StorageLocation.pantry,
+      InventoryItem(
+          id: 'i5',
+          name: 'Rice',
+          unit: 'kg',
+          location: StorageLocation.pantry,
           batches: [InventoryBatch(id: 'b6', quantity: 2)]),
-      InventoryItem(id: 'i6', name: 'Tomato paste', unit: 'jar', location: StorageLocation.pantry,
-          batches: [InventoryBatch(id: 'b7', quantity: 1, expiry: inDays(140))]),
+      InventoryItem(
+          id: 'i6',
+          name: 'Tomato paste',
+          unit: 'jar',
+          location: StorageLocation.pantry,
+          batches: [
+            InventoryBatch(id: 'b7', quantity: 1, expiry: inDays(140))
+          ]),
     ]);
 
     expenses.addAll([
-      Expense(id: 'e1', title: 'Groceries — Migros', amount: 840, paidById: 'sena',
-          date: inDays(-1), addedById: 'sena', category: ExpenseCategory.groceries),
-      Expense(id: 'e2', title: 'Internet bill', amount: 480, paidById: 'zisan',
-          date: inDays(-3), addedById: 'zisan', category: ExpenseCategory.internet),
-      Expense(id: 'e3', title: 'Cleaning supplies', amount: 220, paidById: 'ebrar',
-          date: inDays(-5), addedById: 'ebrar', category: ExpenseCategory.cleaning),
-      Expense(id: 'e4', title: 'Electricity bill', amount: 660, paidById: 'sena',
-          date: inDays(-7), addedById: 'sena', category: ExpenseCategory.bills),
+      Expense(
+          id: 'e1',
+          title: 'Groceries — Migros',
+          amount: 840,
+          paidById: 'sena',
+          date: inDays(-1),
+          addedById: 'sena',
+          category: ExpenseCategory.groceries),
+      Expense(
+          id: 'e2',
+          title: 'Internet bill',
+          amount: 480,
+          paidById: 'zisan',
+          date: inDays(-3),
+          addedById: 'zisan',
+          category: ExpenseCategory.internet),
+      Expense(
+          id: 'e3',
+          title: 'Cleaning supplies',
+          amount: 220,
+          paidById: 'ebrar',
+          date: inDays(-5),
+          addedById: 'ebrar',
+          category: ExpenseCategory.cleaning),
+      Expense(
+          id: 'e4',
+          title: 'Electricity bill',
+          amount: 660,
+          paidById: 'sena',
+          date: inDays(-7),
+          addedById: 'sena',
+          category: ExpenseCategory.bills),
     ]);
   }
+}
+
+/// Data stays with its household when switching or leaving. Leaving changes
+/// membership, not historical expenses or balances; rejoining restores access.
+class _HouseholdData {
+  final Household household;
+  final List<Member> members = [];
+  final List<ShoppingItem> shoppingItems = [];
+  final List<InventoryItem> inventory = [];
+  final List<Expense> expenses = [];
+  final List<Settlement> settlements = [];
+
+  _HouseholdData(this.household);
 }

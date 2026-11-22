@@ -55,11 +55,11 @@ class ChooseHouseholdScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.xxxl),
             Center(
               child: TextButton.icon(
-                onPressed: () => Navigator.of(context)
-                    .pushNamedAndRemoveUntil(AppRoutes.login, (route) => false),
-                icon: const Icon(Icons.logout_rounded,
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRoutes.profile),
+                icon: const Icon(Icons.person_outline_rounded,
                     size: 17, color: AppColors.muted),
-                label: Text('Log out',
+                label: Text('Profile',
                     style: AppTextStyles.bodyMuted.copyWith(fontSize: 13.5)),
               ),
             ),
