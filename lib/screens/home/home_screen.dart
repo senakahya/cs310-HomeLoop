@@ -121,9 +121,9 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.expenseForm),
                   ),
                   _QuickAction(
-                    icon: Icons.person_add_alt_outlined,
-                    label: 'Invite',
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.household),
+                    icon: Icons.auto_awesome_outlined,
+                    label: 'Recipe ideas',
+                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.recipeIdeas),
                   ),
                 ],
               ),

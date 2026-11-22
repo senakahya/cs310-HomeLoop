@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/expense.dart';
+import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
@@ -15,6 +16,8 @@ import '../screens/household/join_household_screen.dart';
 import '../screens/inventory/inventory_detail_screen.dart';
 import '../screens/inventory/inventory_form_screen.dart';
 import '../screens/inventory/stock_update_screen.dart';
+import '../screens/recipes/recipe_detail_screen.dart';
+import '../screens/recipes/recipe_ideas_screen.dart';
 import '../screens/shell/main_shell.dart';
 import '../screens/shopping/confirm_purchase_screen.dart';
 import '../screens/shopping/shopping_item_form_screen.dart';
@@ -41,6 +44,9 @@ class AppRoutes {
   static const expenseDetail = '/expenses/detail';
   static const balances = '/balances';
   static const recordPayment = '/balances/record';
+
+  static const recipeIdeas = '/recipes'; // S20
+  static const recipeDetail = '/recipes/detail'; // S21
 
   static final mainRoutes = <String, WidgetBuilder>{
     main: (context) {
@@ -106,6 +112,15 @@ class AppRoutes {
     recordPayment: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       return RecordPaymentScreen(payment: args as SuggestedPayment);
+    },
+  };
+
+  /// S20–S21 · Recipe ideas (AI assistant, placeholder data in Step 2.2).
+  static final recipeRoutes = <String, WidgetBuilder>{
+    recipeIdeas: (_) => const RecipeIdeasScreen(),
+    recipeDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return args is Recipe ? RecipeDetailScreen(recipe: args) : const RecipeIdeasScreen();
     },
   };
 }

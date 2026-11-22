@@ -22,6 +22,7 @@ class HomeLoopApp extends StatelessWidget {
         ...AppRoutes.expenseRoutes,
         ...AppRoutes.inventoryRoutes,
         ...AppRoutes.mainRoutes,
+        ...AppRoutes.recipeRoutes,
       },
     );
   }
