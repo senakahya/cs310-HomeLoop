@@ -349,7 +349,7 @@ class _UnavailableState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final soon = store.expiringSoon;
+    final soon = store.expiringSoon.where((i) => Fmt.daysFromToday(i.nextExpiry!) >= 0).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

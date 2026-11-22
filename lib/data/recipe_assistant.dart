@@ -40,13 +40,13 @@ class RecipeAssistant {
       final item = _store.inventory.where(
         (i) => i.name.toLowerCase() == ingredient.name.toLowerCase(),
       );
-      if (item.isEmpty) {
+      // Expired food is never suggested: it counts as missing.
+      if (item.isEmpty || _isExpired(item.first.nextExpiry)) {
         missing.add(ingredient);
         continue;
       }
       available.add(ingredient);
-      final next = item.first.nextExpiry;
-      if (next != null && Fmt.daysFromToday(next) <= 3) {
+      if (_expiresSoon(item.first.nextExpiry)) {
         expiring.add(ingredient.name);
       }
     }
@@ -77,8 +77,12 @@ class RecipeAssistant {
   /// First message when the screen opens.
   Future<AssistantReply> welcome() async {
     await _fakeNetworkDelay();
-    final expiring = _store.expiringSoon;
+    final expiring = _store.expiringSoon.where((i) => !_isExpired(i.nextExpiry)).toList();
+    final expired = _store.expiringSoon.where((i) => _isExpired(i.nextExpiry)).toList();
     final ideas = rank().take(2).toList();
+    final expiredNote = expired.isEmpty
+        ? ''
+        : ' ${expired.map((i) => i.name).join(', ')} ${expired.length == 1 ? 'has' : 'have'} expired, so I left ${expired.length == 1 ? 'it' : 'them'} out.';
     if (_store.inventory.isEmpty) {
       return const AssistantReply(
         'Your inventory is empty. Add the food you have at home and I will suggest recipes.',
@@ -86,13 +90,13 @@ class RecipeAssistant {
       );
     }
     if (expiring.isEmpty) {
-      return AssistantReply('Nothing expires soon. Here are ideas with what you have:', ideas);
+      return AssistantReply('Nothing expires soon.$expiredNote Here are ideas with what you have:', ideas);
     }
     final parts = expiring
         .take(2)
         .map((i) => '${i.name} expires ${Fmt.expiry(i.nextExpiry).toLowerCase()}')
         .join(' and ');
-    return AssistantReply('$parts. Here are ideas for today:', ideas);
+    return AssistantReply('$parts.$expiredNote Here are ideas for today:', ideas);
   }
 
   /// Answers a typed question or a quick filter.
@@ -125,6 +129,14 @@ class RecipeAssistant {
       intro = 'These use the food that expires first:';
     }
     return AssistantReply(intro, ideas);
+  }
+
+  static bool _isExpired(DateTime? d) => d != null && Fmt.daysFromToday(d) < 0;
+
+  static bool _expiresSoon(DateTime? d) {
+    if (d == null) return false;
+    final days = Fmt.daysFromToday(d);
+    return days >= 0 && days <= 3;
   }
 
   Future<void> _fakeNetworkDelay() async {
