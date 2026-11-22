@@ -5,7 +5,10 @@ import 'package:homeloop/main.dart';
 import 'package:homeloop/widgets/floating_tab_bar.dart';
 
 void main() {
-  setUp(() => HomeStore.instance.leaveHousehold());
+  setUp(() {
+    HomeStore.instance.resetDemo();
+    HomeStore.instance.leaveHousehold();
+  });
 
   Future<void> openSetup(WidgetTester tester) async {
     await tester.pumpWidget(const HomeLoopApp());

@@ -2,22 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:homeloop/data/home_store.dart';
 import 'package:homeloop/main.dart';
-import 'package:homeloop/models/household.dart';
 import 'package:homeloop/screens/household/choose_household_screen.dart';
 import 'package:homeloop/screens/profile/profile_screen.dart';
 import 'package:homeloop/screens/shell/main_shell.dart';
 
 void main() {
   final store = HomeStore.instance;
-  Household? originalHousehold;
-
-  setUp(() {
-    originalHousehold = store.household;
-    store.household = null;
-    store.joinHousehold('482913');
-  });
-
-  tearDown(() => store.household = originalHousehold);
+  setUp(store.resetDemo);
 
   Future<void> logIn(WidgetTester tester) async {
     await tester.enterText(
@@ -95,10 +86,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.household, isNull);
-    expect(store.expenses, orderedEquals(expenses));
-    expect(store.balances, balances);
-    expect(store.shoppingItems, orderedEquals(shopping));
-    expect(store.inventory, orderedEquals(inventory));
+    expect(store.households, isEmpty);
+    expect(store.expenses, isEmpty);
+    expect(store.shoppingItems, isEmpty);
+    expect(store.inventory, isEmpty);
     expect(find.byType(ChooseHouseholdScreen), findsOneWidget);
     expect(Navigator.of(tester.element(find.text('Set up your home'))).canPop(),
         isFalse);
@@ -111,5 +102,12 @@ void main() {
     expect(find.text(store.currentUser.name), findsOneWidget);
     expect(find.text('Sign out'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    // Leaving hides the old data; rejoining restores it without erasing history.
+    store.joinHousehold('482913');
+    expect(store.expenses, orderedEquals(expenses));
+    expect(store.balances, balances);
+    expect(store.shoppingItems, orderedEquals(shopping));
+    expect(store.inventory, orderedEquals(inventory));
   });
 }

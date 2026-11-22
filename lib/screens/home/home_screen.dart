@@ -7,6 +7,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/headers.dart';
+import '../../widgets/household_switcher.dart';
 import '../../widgets/member_avatar.dart';
 
 /// S06 · Home – daily overview of the household.
@@ -42,45 +43,10 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Tooltip(
-                        message: 'View household',
-                        child: Material(
-                          color: AppColors.surface,
-                          shape: const StadiumBorder(
-                            side: BorderSide(color: AppColors.line),
-                          ),
-                          child: InkWell(
-                            customBorder: const StadiumBorder(),
-                            onTap: () => Navigator.of(context)
-                                .pushNamed(AppRoutes.household),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.home_outlined, size: 16),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      store.household?.name ?? 'Household',
-                                      style: AppTextStyles.label,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Icon(Icons.chevron_right_rounded,
-                                      size: 18),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      child: HouseholdSwitcher(),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),

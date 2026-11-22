@@ -75,6 +75,10 @@ class HouseholdScreen extends StatelessWidget {
 
   Future<void> _leave(BuildContext context) async {
     final store = HomeStore.instance;
+    final others = store.households.where((h) => h != store.household).toList();
+    final destination = others.isEmpty
+        ? 'return to household setup to create or join a household'
+        : 'switch to ${others.first.name}';
     final confirmed = await showConfirmDialog(
       context,
       title: 'Leave household?',
@@ -82,16 +86,17 @@ class HouseholdScreen extends StatelessWidget {
           'You will lose access to ${store.household?.name ?? 'this household'}\'s '
           'shopping list, inventory and expenses. Past expenses and any open '
           'balances will remain in the household history.\n\n'
-          'You will stay signed in and return to household setup to create or '
-          'join a household. You can rejoin with an invite code.',
+          'You will stay signed in and $destination. '
+          'You can rejoin with an invite code.',
       confirmLabel: 'Leave household',
       danger: true,
       icon: Icons.logout_rounded,
     );
     if (confirmed && context.mounted) {
       store.leaveHousehold();
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.chooseHousehold, (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+          store.household == null ? AppRoutes.chooseHousehold : AppRoutes.main,
+          (route) => false);
     }
   }
 
