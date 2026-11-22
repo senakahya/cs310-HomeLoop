@@ -8,7 +8,6 @@ import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/headers.dart';
 import '../../widgets/member_avatar.dart';
-import '../../widgets/inputs.dart';
 
 /// S06 · Home – daily overview of the household.
 class HomeScreen extends StatelessWidget {
@@ -38,31 +37,71 @@ class HomeScreen extends StatelessWidget {
           final payments = store.suggestedPayments.length;
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screen, AppSpacing.sm, AppSpacing.screen, AppSpacing.tabBarSpace),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.screen, AppSpacing.sm,
+                AppSpacing.screen, AppSpacing.tabBarSpace),
             children: [
               Row(
                 children: [
-                  PillChip(
-                    label: store.household?.name ?? 'Household',
-                    icon: Icons.home_outlined,
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.household),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Tooltip(
+                        message: 'View household',
+                        child: Material(
+                          color: AppColors.surface,
+                          shape: const StadiumBorder(
+                            side: BorderSide(color: AppColors.line),
+                          ),
+                          child: InkWell(
+                            customBorder: const StadiumBorder(),
+                            onTap: () => Navigator.of(context)
+                                .pushNamed(AppRoutes.household),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.home_outlined, size: 16),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      store.household?.name ?? 'Household',
+                                      style: AppTextStyles.label,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.chevron_right_rounded,
+                                      size: 18),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.household),
-                    child: MemberAvatar(member: store.currentUser, size: 42),
+                  const SizedBox(width: AppSpacing.sm),
+                  IconButton(
+                    tooltip: 'Profile',
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.profile),
+                    icon: MemberAvatar(member: store.currentUser, size: 42),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
-              Text('${_greeting()},\n${store.currentUser.name}', style: AppTextStyles.display),
+              Text('${_greeting()},\n${store.currentUser.name}',
+                  style: AppTextStyles.display),
               const SizedBox(height: AppSpacing.lg),
               _BalanceHero(
                 balance: balance,
                 currency: store.currency,
                 payments: payments,
-                onSettle: () => Navigator.of(context).pushNamed(AppRoutes.balances),
+                onSettle: () =>
+                    Navigator.of(context).pushNamed(AppRoutes.balances),
               ),
               const SizedBox(height: AppSpacing.md),
               Row(
@@ -78,7 +117,9 @@ class HomeScreen extends StatelessWidget {
                       detail: toBuy.isEmpty
                           ? 'Nothing to buy right now'
                           : toBuy.take(3).map((i) => i.name).join(', ') +
-                              (toBuy.length > 3 ? ' and ${toBuy.length - 3} more' : ''),
+                              (toBuy.length > 3
+                                  ? ' and ${toBuy.length - 3} more'
+                                  : ''),
                       onTap: () => onOpenTab(1),
                     ),
                   ),
@@ -94,7 +135,8 @@ class HomeScreen extends StatelessWidget {
                           ? 'Nothing expires in the next 3 days'
                           : expiring
                               .take(2)
-                              .map((i) => '${i.name} ${Fmt.expiry(i.nextExpiry).toLowerCase()}')
+                              .map((i) =>
+                                  '${i.name} ${Fmt.expiry(i.nextExpiry).toLowerCase()}')
                               .join(' · '),
                       onTap: () => onOpenTab(2),
                     ),
@@ -108,17 +150,20 @@ class HomeScreen extends StatelessWidget {
                   _QuickAction(
                     icon: Icons.add_rounded,
                     label: 'Add to list',
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.shoppingItem),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.shoppingItem),
                   ),
                   _QuickAction(
                     icon: Icons.kitchen_outlined,
                     label: 'Add food',
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.inventoryForm),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRoutes.inventoryForm),
                   ),
                   _QuickAction(
                     icon: Icons.receipt_long_outlined,
                     label: 'Add expense',
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.expenseForm),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.expenseForm),
                   ),
                   _QuickAction(
                     icon: Icons.auto_awesome_outlined,
@@ -154,10 +199,12 @@ class _BalanceHero extends StatelessWidget {
     String detail;
     if (balance > 0.009) {
       amount = '+${Fmt.money(balance, currency)}';
-      detail = "You're owed · $payments suggested payment${payments == 1 ? '' : 's'}";
+      detail =
+          "You're owed · $payments suggested payment${payments == 1 ? '' : 's'}";
     } else if (balance < -0.009) {
       amount = Fmt.money(balance, currency);
-      detail = 'You owe · $payments suggested payment${payments == 1 ? '' : 's'}';
+      detail =
+          'You owe · $payments suggested payment${payments == 1 ? '' : 's'}';
     } else {
       amount = Fmt.money(0, currency);
       detail = 'All settled up';
@@ -165,7 +212,9 @@ class _BalanceHero extends StatelessWidget {
 
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: AppColors.ink, borderRadius: BorderRadius.circular(AppRadius.hero)),
+      decoration: BoxDecoration(
+          color: AppColors.ink,
+          borderRadius: BorderRadius.circular(AppRadius.hero)),
       child: Stack(
         children: [
           Positioned(
@@ -189,7 +238,9 @@ class _BalanceHero extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Your balance', style: AppTextStyles.caption.copyWith(color: AppColors.whiteMuted)),
+                      Text('Your balance',
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.whiteMuted)),
                       const SizedBox(height: AppSpacing.xs),
                       FittedBox(
                         fit: BoxFit.scaleDown,
@@ -197,12 +248,16 @@ class _BalanceHero extends StatelessWidget {
                         child: Text(
                           amount,
                           style: AppTextStyles.amount.copyWith(
-                            color: balance < -0.009 ? const Color(0xFFF0C4C8) : AppColors.accent,
+                            color: balance < -0.009
+                                ? const Color(0xFFF0C4C8)
+                                : AppColors.accent,
                           ),
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(detail, style: AppTextStyles.caption.copyWith(color: AppColors.whiteMuted)),
+                      Text(detail,
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.whiteMuted)),
                     ],
                   ),
                 ),
@@ -214,8 +269,12 @@ class _BalanceHero extends StatelessWidget {
                     customBorder: const StadiumBorder(),
                     onTap: onSettle,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      child: Text('Settle up', style: AppTextStyles.label.copyWith(color: AppColors.ink, fontWeight: FontWeight.w700)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      child: Text('Settle up',
+                          style: AppTextStyles.label.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ),
@@ -265,7 +324,9 @@ class _SummaryTile extends StatelessWidget {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12)),
                     child: Icon(icon, size: 18, color: color),
                   ),
                   const Spacer(),
@@ -274,13 +335,16 @@ class _SummaryTile extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               Text('$count', style: AppTextStyles.title.copyWith(fontSize: 24)),
-              Text(label, style: AppTextStyles.label.copyWith(color: AppColors.ink, fontWeight: FontWeight.w700)),
+              Text(label,
+                  style: AppTextStyles.label.copyWith(
+                      color: AppColors.ink, fontWeight: FontWeight.w700)),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 detail,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.caption.copyWith(color: AppColors.ink2, height: 1.4),
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.ink2, height: 1.4),
               ),
             ],
           ),
@@ -295,7 +359,8 @@ class _QuickAction extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _QuickAction({required this.icon, required this.label, required this.onTap});
+  const _QuickAction(
+      {required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +379,11 @@ class _QuickAction extends StatelessWidget {
                   color: AppColors.surface,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: AppColors.shadow, blurRadius: 18, offset: Offset(0, 8), spreadRadius: -10),
+                    BoxShadow(
+                        color: AppColors.shadow,
+                        blurRadius: 18,
+                        offset: Offset(0, 8),
+                        spreadRadius: -10),
                   ],
                 ),
                 child: Icon(icon, color: AppColors.ink, size: 22),
@@ -325,7 +394,10 @@ class _QuickAction extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.caption.copyWith(color: AppColors.ink2, fontWeight: FontWeight.w600, fontSize: 11.5),
+                style: AppTextStyles.caption.copyWith(
+                    color: AppColors.ink2,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11.5),
               ),
             ],
           ),

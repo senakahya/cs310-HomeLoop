@@ -142,6 +142,17 @@ All members will contribute to integration testing, code review and documentatio
 
 ## Run on Android
 
+### Profile and household navigation
+
+- On S06 (Home), tap the house icon or household name at the top left to open S07 (Household & members) directly.
+- The avatar at the top right opens Profile. Sign out lives there and returns to Login while keeping household membership and shared data.
+- On S07, **Leave household** opens a confirmation explaining the loss of access to shopping, inventory and expenses. Cancel keeps the user in the household; confirming returns to household setup and clears the navigation history while keeping the user signed in. Past expenses and open balances remain in household history; leaving does not settle or erase them. The user can create a household or rejoin with an invite code.
+- Profile is also available from household setup so users can sign out after leaving.
+
+These flows currently use in-memory demo data; authentication and persistent membership changes are planned for the Firebase integration.
+
+### Launch the app
+
 Developed with Flutter 3.47.7 (stable). Open the repository root in Android
 Studio and start an Android emulator from Device Manager. From the repository
 root, run:
