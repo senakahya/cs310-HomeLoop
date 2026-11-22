@@ -42,6 +42,9 @@ class RecipeDetailScreen extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         content: Text(text),
+        // A snack bar with an action stays open by default; close it after 4 s.
+        persist: false,
+        duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: 'View',
           onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
